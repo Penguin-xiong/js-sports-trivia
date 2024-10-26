@@ -20,3 +20,4 @@ const nextQuestionElement = document.querySelector('#nextQuestion')
 
 // mimic a click on the "nextQuestion" button to show the first question
 nextQuestionElement.click()
+
