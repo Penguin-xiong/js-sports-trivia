@@ -1,23 +1,66 @@
-
 // import the utility functions "decodeHtml" and "shuffle"
-import { decodeHtml, shuffle } from './utils.js' 
+import { decodeHtml, shuffle } from "./utils.js";
 
 // get the elements from the DOM
-const questionElement = document.querySelector('#question')
-const answersElement = document.querySelector('#answers')
-const nextQuestionElement = document.querySelector('#nextQuestion')
+const questionElement = document.querySelector("#question");
+const answersElement = document.querySelector("#answers");
+const nextQuestionElement = document.querySelector("#nextQuestion");
 
 // IIFE (so we can use async/await)
-;(async () => {
+(async () => {
+  // todo: create your "getNextQuestion" function
+  const getNextQuestion = async () => {
+    const fetchResponse = await fetch(
+      "https://opentdb.com/api.php?amount=1&category=21&difficulty=easy&type=multiple"
+    );
+    const json = await fetchResponse.json();
+    const {
+      question,
+      correct_answer: correct,
+      incorrect_answers: incorrect,
+    } = json.results[0];
+    const answers = shuffle([...incorrect, correct]);
+    return { question, answers, correct };
+  };
 
-	// todo: create your "getNextQuestion" function
+  // todo: create your "renderQuestion" function
+  const renderQuestion = ({ question, answers, correct }) => {
+    questionElement.innerHTML = decodeHtml(question);
+    answersElement.innerHTML = "";
+    answers.forEach((answer) => {
+      const button = document.createElement("button");
+      button.textContent = decodeHtml(answer);
 
-	// todo: create your "renderQuestion" function
+      button.addEventListener("click", () => {
+        if (answer === correct) {
+          button.classList.add("correct");
 
-	// todo: add the event listener to the "nextQuestion" button
+          answersElement
+            .querySelectorAll("button")
+            .forEach((b) => (b.disabled = true));
+          alert("Correct!");
+          return;
+        }
 
-})()
+        button.disabled = true;
+        alert("Incorrect!");
+      });
+
+      answersElement.appendChild(button);
+    });
+  };
+
+  // todo: add the event listener to the "nextQuestion" button
+  nextQuestionElement.addEventListener("click", async () => {
+    renderQuestion(await getNextQuestion());
+    nextQuestionElement.disabled = true;
+    setTimeout(() => (nextQuestionElement.disabled = false), 10000);
+  });
+
+  //   console.log(await getNextQuestion());
+  //   question, answers, (correct = getNextQuestion());
+  renderQuestion(await getNextQuestion());
+})();
 
 // mimic a click on the "nextQuestion" button to show the first question
-nextQuestionElement.click()
-
+nextQuestionElement.click();
